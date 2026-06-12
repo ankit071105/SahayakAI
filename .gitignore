@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual Environment
+venv/
+.venv/
+backend/venv/
+
+# Environment Variables
+.env
+
+# Chroma DB
+chroma_db/
+backend/chroma_db/
+
+# Mac
+.DS_Store
+
+# Logs
+*.log
+
+# Models
+*.pt
+*.pth
+*.h5
+*.onnx
+*.pkl
+*.joblib
+
+# Uploads
+uploads/

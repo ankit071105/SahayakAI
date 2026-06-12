@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SahayakAI — सरकारी सहायक</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   DESIGN TOKENS — Cyan + Light Govt Portal Theme
+═══════════════════════════════════════════════════════════════ */
+:root{
+  --cyan:       #0891b2;
+  --cyan-dark:  #0e7490;
+  --cyan-light: #e0f2fe;
+  --cyan-pale:  #f0f9ff;
+  --bg:         #f8fafc;
+  --sidebar-bg: #ffffff;
+  --surface:    #ffffff;
+  --card:       #f1f5f9;
+  --border:     #e2e8f0;
+  --border-soft:#f1f5f9;
+  --text:       #0f172a;
+  --text-soft:  #475569;
+  --text-muted: #94a3b8;
+  --user-bubble:#0891b2;
+  --bot-bg:     #f8fafc;
+  --danger:     #ef4444;
+  --success:    #10b981;
+  --warning:    #f59e0b;
+  --orange:     #f97316;
+  --radius:     12px;
+  --sidebar-w:  268px;
+  --font:       'Inter',sans-serif;
+  --font-hi:    'Noto Sans Devanagari',sans-serif;
+  --shadow:     0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
+  --shadow-md:  0 4px 6px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.06);
+  --shadow-lg:  0 10px 15px rgba(0,0,0,.1),0 4px 6px rgba(0,0,0,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+button{cursor:pointer;font-family:inherit;border:none;background:none}
+input,textarea,select{font-family:inherit;font-size:14px;outline:none}
+a{color:var(--cyan);text-decoration:none}
+
+/* ═══════════════════════════════════════════════════════════════
+   AUTH OVERLAY
+═══════════════════════════════════════════════════════════════ */
+#auth-overlay{
+  position:fixed;inset:0;background:linear-gradient(135deg,#0c4a6e 0%,#0891b2 50%,#06b6d4 100%);
+  display:flex;align-items:center;justify-content:center;z-index:1000;
+}
+#auth-overlay.hidden{display:none}
+.auth-box{
+  background:#fff;border-radius:20px;padding:40px;width:420px;max-width:95vw;
+  box-shadow:0 25px 50px rgba(0,0,0,.25);
+}
+.auth-logo{text-align:center;margin-bottom:28px}
+.auth-logo-icon{
+  width:56px;height:56px;border-radius:16px;margin:0 auto 12px;
+  background:linear-gradient(135deg,var(--cyan),#06b6d4);
+  display:flex;align-items:center;justify-content:center;font-size:26px;
+  box-shadow:0 8px 20px rgba(8,145,178,.35);
+}
+.auth-logo h1{font-size:22px;font-weight:700;color:var(--text)}
+.auth-logo p{font-size:12px;color:var(--text-muted);margin-top:3px}
+.auth-tabs{display:flex;background:var(--card);border-radius:10px;padding:4px;margin-bottom:24px}
+.auth-tab{flex:1;padding:8px;border-radius:8px;font-size:13px;font-weight:500;color:var(--text-soft);transition:all .2s}
+.auth-tab.active{background:#fff;color:var(--cyan);box-shadow:var(--shadow)}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--text-soft);margin-bottom:6px}
+.field input{
+  width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;
+  font-size:14px;color:var(--text);transition:border-color .2s;background:#fff;
+}
+.field input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(8,145,178,.12)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn-primary{
+  width:100%;padding:12px;border-radius:10px;font-size:14px;font-weight:600;
+  background:linear-gradient(135deg,var(--cyan),#06b6d4);color:#fff;
+  box-shadow:0 4px 14px rgba(8,145,178,.35);transition:opacity .2s;
+}
+.btn-primary:hover{opacity:.9}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed}
+.auth-divider{text-align:center;color:var(--text-muted);font-size:12px;margin:16px 0;position:relative}
+.auth-divider::before,.auth-divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:var(--border)}
+.auth-divider::before{left:0}.auth-divider::after{right:0}
+.auth-error{background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;padding:9px 12px;font-size:12.5px;margin-bottom:12px}
+.india-badge{text-align:center;margin-top:18px;font-size:11px;color:var(--text-muted)}
+
+/* Profile Completion Popup */
+#profile-popup{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:999;
+}
+#profile-popup.hidden{display:none}
+.profile-popup-box{background:#fff;border-radius:20px;padding:36px;width:480px;max-width:95vw;box-shadow:var(--shadow-lg)}
+.profile-popup-box h2{font-size:20px;font-weight:700;margin-bottom:4px}
+.profile-popup-box p{color:var(--text-soft);font-size:13px;margin-bottom:24px}
+.profile-steps{display:flex;gap:6px;margin-bottom:24px}
+.pstep{flex:1;height:3px;border-radius:2px;background:var(--border)}
+.pstep.done{background:var(--cyan)}
+.profile-avatar-row{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.avatar-circle{
+  width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),#06b6d4);
+  display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;
+  flex-shrink:0;cursor:pointer;position:relative;
+}
+.avatar-circle:hover::after{content:'✎';position:absolute;inset:0;background:rgba(0,0,0,.35);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px}
+.skip-btn{background:none;border:none;color:var(--text-muted);font-size:13px;text-decoration:underline;cursor:pointer}
+
+/* ═══════════════════════════════════════════════════════════════
+   MAIN LAYOUT
+═══════════════════════════════════════════════════════════════ */
+#app{display:flex;height:100vh;overflow:hidden}
+#app.hidden{display:none}
+
+/* ═══════════════════════════════════════════════════════════════
+   SIDEBAR — ChatGPT style
+═══════════════════════════════════════════════════════════════ */
+#sidebar{
+  width:var(--sidebar-w);flex-shrink:0;background:var(--sidebar-bg);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;
+  height:100vh;overflow:hidden;transition:width .25s;
+}
+#sidebar.collapsed{width:0;overflow:hidden}
+
+.sidebar-top{padding:12px 12px 8px;flex-shrink:0}
+.sidebar-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.brand{display:flex;align-items:center;gap:9px}
+.brand-icon{
+  width:32px;height:32px;border-radius:9px;
+  background:linear-gradient(135deg,var(--cyan),#06b6d4);
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+  box-shadow:0 3px 10px rgba(8,145,178,.3);
+}
+.brand-name{font-size:15px;font-weight:700;color:var(--text)}
+.brand-sub{font-size:9.5px;color:var(--cyan);font-weight:500;letter-spacing:.03em}
+.icon-btn{
+  width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  color:var(--text-soft);transition:background .15s;font-size:16px;
+}
+.icon-btn:hover{background:var(--card)}
+
+.new-chat-btn{
+  width:100%;padding:9px 12px;border-radius:10px;display:flex;align-items:center;gap:9px;
+  border:1.5px solid var(--border);color:var(--text);font-size:13.5px;font-weight:500;
+  transition:all .15s;margin-bottom:8px;background:#fff;
+}
+.new-chat-btn:hover{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-pale)}
+.new-chat-btn svg{flex-shrink:0}
+
+.sidebar-search{
+  display:flex;align-items:center;gap:8px;padding:8px 11px;
+  background:var(--card);border-radius:9px;margin-bottom:8px;
+}
+.sidebar-search input{
+  flex:1;background:none;border:none;font-size:13px;color:var(--text);
+}
+.sidebar-search input::placeholder{color:var(--text-muted)}
+
+/* Upload trigger in sidebar top */
+.upload-trigger{
+  width:100%;padding:8px 12px;border-radius:9px;display:flex;align-items:center;gap:8px;
+  color:var(--text-soft);font-size:12.5px;font-weight:500;transition:background .15s;
+}
+.upload-trigger:hover{background:var(--card);color:var(--text)}
+
+.sidebar-section-label{
+  font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;
+  letter-spacing:.06em;padding:12px 14px 5px;
+}
+
+.sidebar-chats{flex:1;overflow-y:auto;padding:0 6px}
+.chat-item{
+  display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;
+  cursor:pointer;transition:background .15s;group:true;position:relative;
+}
+.chat-item:hover{background:var(--card)}
+.chat-item.active{background:var(--cyan-light);color:var(--cyan-dark)}
+.chat-item-icon{font-size:13px;flex-shrink:0;opacity:.6}
+.chat-item-text{flex:1;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.chat-item.active .chat-item-text{color:var(--cyan-dark);font-weight:500}
+.chat-item-menu{opacity:0;font-size:14px;color:var(--text-muted);padding:2px 4px;border-radius:4px}
+.chat-item:hover .chat-item-menu{opacity:1}
+.chat-item-menu:hover{background:var(--border);color:var(--text)}
+.pinned-badge{font-size:10px;color:var(--cyan)}
+
+/* Sidebar bottom — profile */
+.sidebar-bottom{
+  flex-shrink:0;padding:8px 10px 12px;border-top:1px solid var(--border-soft);
+}
+.profile-btn{
+  width:100%;display:flex;align-items:center;gap:10px;padding:9px 10px;
+  border-radius:10px;transition:background .15s;
+}
+.profile-btn:hover{background:var(--card)}
+.avatar{
+  width:32px;height:32px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--cyan),#06b6d4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;color:#fff;
+}
+.profile-info{flex:1;min-width:0;text-align:left}
+.profile-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile-role{font-size:10.5px;color:var(--text-muted)}
+.profile-chevron{color:var(--text-muted);font-size:12px}
+
+/* ═══════════════════════════════════════════════════════════════
+   MAIN CONTENT
+═══════════════════════════════════════════════════════════════ */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* Top bar */
+.topbar{
+  display:flex;align-items:center;gap:10px;padding:10px 18px;
+  border-bottom:1px solid var(--border-soft);background:#fff;flex-shrink:0;
+  min-height:52px;
+}
+.topbar-toggle{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;color:var(--text-soft);font-size:18px;transition:background .15s}
+.topbar-toggle:hover{background:var(--card)}
+.topbar-title{font-size:14px;font-weight:600;color:var(--text);flex:1}
+.topbar-lang{display:flex;gap:3px;background:var(--card);border-radius:20px;padding:3px}
+.lang-btn{padding:4px 11px;border-radius:16px;font-size:12px;font-weight:500;color:var(--text-soft);transition:all .15s}
+.lang-btn.active{background:var(--cyan);color:#fff;box-shadow:0 2px 6px rgba(8,145,178,.3)}
+.topbar-actions{display:flex;gap:4px}
+.ta-btn{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--text-soft);font-size:14px;transition:background .15s}
+.ta-btn:hover{background:var(--card)}
+
+/* ═══════════════════════════════════════════════════════════════
+   WELCOME / EMPTY STATE
+═══════════════════════════════════════════════════════════════ */
+#welcome{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:40px 20px;overflow-y:auto;
+}
+.welcome-icon{
+  width:72px;height:72px;border-radius:20px;margin:0 auto 20px;
+  background:linear-gradient(135deg,var(--cyan),#06b6d4);
+  display:flex;align-items:center;justify-content:center;font-size:34px;
+  box-shadow:0 8px 24px rgba(8,145,178,.3);
+}
+#welcome h2{font-size:26px;font-weight:700;text-align:center;margin-bottom:8px}
+#welcome h2 span{background:linear-gradient(135deg,var(--cyan),#06b6d4);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+#welcome p{color:var(--text-soft);font-size:14px;text-align:center;max-width:460px;line-height:1.6;margin-bottom:32px}
+.welcome-cats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-width:520px;width:100%;margin-bottom:28px}
+.cat-card{
+  padding:14px 16px;border-radius:12px;border:1.5px solid var(--border);
+  background:#fff;cursor:pointer;transition:all .2s;text-align:left;
+}
+.cat-card:hover{border-color:var(--cyan);background:var(--cyan-pale);transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.cat-card-icon{font-size:20px;margin-bottom:7px}
+.cat-card-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
+.cat-card-desc{font-size:11.5px;color:var(--text-muted);line-height:1.4}
+.hint-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:600px}
+.hint-chip{
+  padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:#fff;
+  font-size:12.5px;color:var(--text-soft);cursor:pointer;transition:all .15s;
+}
+.hint-chip:hover{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-pale)}
+
+/* ═══════════════════════════════════════════════════════════════
+   MESSAGES
+═══════════════════════════════════════════════════════════════ */
+#messages{flex:1;overflow-y:auto;padding:0;display:none;flex-direction:column}
+#messages.visible{display:flex}
+
+.msg-row{
+  display:flex;align-items:flex-start;gap:0;padding:20px 0;
+  border-bottom:1px solid var(--border-soft);
+}
+.msg-row.user{background:var(--bg);flex-direction:row-reverse}
+.msg-row.bot{background:#fff}
+.msg-row:last-child{border-bottom:none}
+
+.msg-avatar{
+  width:32px;height:32px;border-radius:9px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;margin:0 18px;
+}
+.msg-avatar.user-av{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:12px}
+.msg-avatar.bot-av{background:linear-gradient(135deg,var(--cyan),#06b6d4);color:#fff;font-size:15px}
+
+.msg-body{flex:1;min-width:0;max-width:680px;padding-right:18px}
+.msg-row.user .msg-body{padding-right:0;padding-left:18px;text-align:right}
+.msg-sender{font-size:12px;font-weight:600;color:var(--text-soft);margin-bottom:6px}
+.msg-text{
+  font-size:14.5px;color:var(--text);line-height:1.7;
+  white-space:pre-wrap;word-break:break-word;
+}
+.msg-text.hi{font-family:var(--font-hi);font-size:15px;line-height:1.85}
+.msg-row.user .msg-text{
+  display:inline-block;background:linear-gradient(135deg,var(--cyan),#06b6d4);
+  color:#fff;padding:10px 16px;border-radius:18px 18px 4px 18px;
+  box-shadow:0 4px 12px rgba(8,145,178,.25);text-align:left;
+}
+
+/* Message badges */
+.msg-badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.mbadge{
+  padding:3px 9px;border-radius:12px;font-size:10.5px;font-weight:500;
+  display:inline-flex;align-items:center;gap:4px;
+}
+.mb-rag{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+.mb-cache{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
+.mb-general{background:#f0f9ff;color:var(--cyan-dark);border:1px solid #bae6fd}
+.mb-fallback{background:#fffbeb;color:#92400e;border:1px solid #fde68a}
+.source-chip{padding:2px 8px;border-radius:8px;font-size:10px;background:var(--cyan-pale);color:var(--cyan-dark);border:1px solid #bae6fd}
+
+/* Message actions */
+.msg-actions{display:flex;align-items:center;gap:2px;margin-top:8px;opacity:0;transition:opacity .2s}
+.msg-row:hover .msg-actions{opacity:1}
+.ma-btn{
+  padding:5px 8px;border-radius:7px;font-size:11.5px;color:var(--text-muted);
+  display:flex;align-items:center;gap:4px;transition:all .15s;
+}
+.ma-btn:hover{background:var(--card);color:var(--text)}
+
+/* Follow-ups */
+.followups{margin-top:12px;display:flex;flex-direction:column;gap:5px}
+.fu-btn{
+  padding:8px 13px;border-radius:9px;font-size:12.5px;color:var(--cyan-dark);
+  border:1px solid #bae6fd;background:var(--cyan-pale);text-align:left;
+  transition:all .15s;display:flex;align-items:center;gap:7px;
+}
+.fu-btn:hover{background:var(--cyan-light);border-color:var(--cyan)}
+.fu-btn::before{content:'→';font-size:12px;opacity:.6}
+
+/* Typing dots */
+.typing-dots{display:flex;gap:4px;padding:10px 0}
+.typing-dots span{
+  width:8px;height:8px;border-radius:50%;background:var(--text-muted);
+  animation:tdot .9s infinite;
+}
+.typing-dots span:nth-child(2){animation-delay:.15s}
+.typing-dots span:nth-child(3){animation-delay:.3s}
+@keyframes tdot{0%,60%,100%{transform:none;opacity:.4}30%{transform:translateY(-5px);opacity:1}}
+
+/* ═══════════════════════════════════════════════════════════════
+   INPUT BAR
+═══════════════════════════════════════════════════════════════ */
+.input-area{
+  flex-shrink:0;padding:12px 18px 16px;background:#fff;
+  border-top:1px solid var(--border-soft);
+}
+.input-box{
+  display:flex;align-items:flex-end;gap:8px;
+  background:#fff;border:1.5px solid var(--border);border-radius:16px;
+  padding:8px 8px 8px 14px;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+  transition:border-color .2s,box-shadow .2s;
+}
+.input-box:focus-within{
+  border-color:var(--cyan);
+  box-shadow:0 2px 8px rgba(8,145,178,.15),0 0 0 3px rgba(8,145,178,.08);
+}
+.input-box textarea{
+  flex:1;border:none;background:none;resize:none;
+  font-size:14.5px;color:var(--text);line-height:1.55;
+  min-height:24px;max-height:140px;padding:4px 0;
+}
+.input-box textarea::placeholder{color:var(--text-muted)}
+.input-tools{display:flex;align-items:center;gap:4px}
+.it-btn{
+  width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  color:var(--text-muted);font-size:15px;transition:all .15s;
+}
+.it-btn:hover{background:var(--card);color:var(--cyan)}
+.send-btn{
+  width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  background:var(--cyan);color:#fff;font-size:16px;transition:all .15s;flex-shrink:0;
+  box-shadow:0 2px 8px rgba(8,145,178,.35);
+}
+.send-btn:hover{background:var(--cyan-dark)}
+.send-btn:disabled{background:var(--border);box-shadow:none;color:var(--text-muted)}
+.input-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding:0 2px}
+.input-footer-left{display:flex;align-items:center;gap:8px}
+.filter-sel{
+  padding:4px 10px;border-radius:8px;border:1px solid var(--border);
+  background:#fff;font-size:12px;color:var(--text-soft);cursor:pointer;
+}
+.char-count{font-size:11px;color:var(--text-muted)}
+.input-footer-right{display:flex;gap:6px}
+.footer-btn{
+  padding:4px 10px;border-radius:8px;font-size:11.5px;color:var(--text-muted);
+  border:1px solid var(--border);background:#fff;transition:all .15s;
+  display:flex;align-items:center;gap:4px;
+}
+.footer-btn:hover{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-pale)}
+
+/* ═══════════════════════════════════════════════════════════════
+   UPLOAD PANEL (slide-in from right)
+═══════════════════════════════════════════════════════════════ */
+#upload-panel{
+  position:fixed;top:0;right:-360px;width:340px;height:100vh;
+  background:#fff;border-left:1px solid var(--border);z-index:200;
+  display:flex;flex-direction:column;transition:right .3s;box-shadow:-4px 0 20px rgba(0,0,0,.1);
+}
+#upload-panel.open{right:0}
+.panel-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 18px;border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.panel-header h3{font-size:15px;font-weight:600}
+.panel-close{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:18px}
+.panel-close:hover{background:var(--card)}
+.panel-body{flex:1;overflow-y:auto;padding:16px}
+
+.drop-zone{
+  border:2px dashed var(--border);border-radius:12px;padding:28px 20px;
+  text-align:center;cursor:pointer;transition:all .2s;position:relative;margin-bottom:14px;
+}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--cyan);background:var(--cyan-pale)}
+.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.drop-icon{font-size:28px;margin-bottom:8px}
+.drop-zone p{font-size:13px;color:var(--text-soft);line-height:1.5}
+.drop-zone span{color:var(--cyan);font-weight:500}
+
+.lang-select{width:100%;padding:9px 12px;border-radius:9px;border:1.5px solid var(--border);background:#fff;font-size:13px;color:var(--text);margin-bottom:10px;cursor:pointer}
+.lang-select:focus{border-color:var(--cyan)}
+.prog-wrap{height:4px;background:var(--border);border-radius:4px;overflow:hidden;display:none;margin-bottom:10px}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--cyan),#06b6d4);width:0;transition:width .3s}
+.panel-doc-list{display:flex;flex-direction:column;gap:6px}
+.panel-doc{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;
+  background:var(--card);border-radius:10px;border:1px solid var(--border);
+}
+.panel-doc-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.panel-doc-info{flex:1;min-width:0}
+.panel-doc-name{font-size:12.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.panel-doc-meta{font-size:10.5px;color:var(--text-muted);margin-top:2px}
+.lang-tag{font-size:9px;font-weight:600;padding:1px 6px;border-radius:5px}
+.lt-en{background:#dcfce7;color:#166534}.lt-hi{background:#fef9c3;color:#713f12}
+.doc-del{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:13px}
+.doc-del:hover{background:#fef2f2;color:var(--danger)}
+
+/* ═══════════════════════════════════════════════════════════════
+   PROFILE DASHBOARD (slide-in)
+═══════════════════════════════════════════════════════════════ */
+#profile-panel{
+  position:fixed;top:0;right:-400px;width:380px;height:100vh;
+  background:#fff;border-left:1px solid var(--border);z-index:200;
+  display:flex;flex-direction:column;transition:right .3s;box-shadow:-4px 0 20px rgba(0,0,0,.1);
+}
+#profile-panel.open{right:0}
+.prof-hero{
+  padding:24px 20px 20px;
+  background:linear-gradient(135deg,var(--cyan-pale),#fff);
+  border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.prof-av-row{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.prof-av{
+  width:56px;height:56px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--cyan),#06b6d4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:700;color:#fff;
+}
+.prof-name{font-size:17px;font-weight:700}
+.prof-email{font-size:12px;color:var(--text-muted);margin-top:2px}
+.prof-tags{display:flex;gap:6px;flex-wrap:wrap}
+.prof-tag{padding:3px 10px;border-radius:10px;font-size:10.5px;font-weight:600}
+.pt-state{background:#eff6ff;color:#1d4ed8}
+.pt-district{background:#ecfdf5;color:#065f46}
+.pt-dept{background:#fdf4ff;color:#6b21a8}
+.prof-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.pstat{background:#fff;border-radius:10px;padding:10px;text-align:center;border:1px solid var(--border)}
+.pstat-val{font-size:18px;font-weight:700;color:var(--cyan)}
+.pstat-label{font-size:10px;color:var(--text-muted);margin-top:2px}
+.prof-body{flex:1;overflow-y:auto;padding:16px 20px}
+.prof-section{margin-bottom:20px}
+.prof-section-title{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.prof-field{margin-bottom:12px}
+.prof-field label{display:block;font-size:12px;color:var(--text-soft);margin-bottom:5px}
+.prof-field input,.prof-field select{
+  width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;
+  font-size:13px;color:var(--text);background:#fff;
+}
+.prof-field input:focus,.prof-field select:focus{border-color:var(--cyan)}
+.save-prof-btn{
+  width:100%;padding:11px;border-radius:10px;font-size:13.5px;font-weight:600;
+  background:linear-gradient(135deg,var(--cyan),#06b6d4);color:#fff;
+  box-shadow:0 4px 12px rgba(8,145,178,.3);
+}
+.danger-zone{background:#fef2f2;border-radius:10px;padding:14px;border:1px solid #fecaca}
+.logout-btn{
+  width:100%;padding:10px;border-radius:9px;font-size:13px;font-weight:500;
+  color:var(--danger);border:1.5px solid #fecaca;background:#fff;transition:all .15s;
+}
+.logout-btn:hover{background:#fef2f2}
+
+/* ═══════════════════════════════════════════════════════════════
+   CHAT CONTEXT MENU
+═══════════════════════════════════════════════════════════════ */
+#ctx-menu{
+  position:fixed;background:#fff;border:1px solid var(--border);border-radius:11px;
+  box-shadow:var(--shadow-lg);z-index:500;min-width:160px;display:none;overflow:hidden;
+}
+#ctx-menu.open{display:block}
+.ctx-item{
+  display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:13px;
+  color:var(--text);transition:background .15s;cursor:pointer;
+}
+.ctx-item:hover{background:var(--card)}
+.ctx-item.danger{color:var(--danger)}
+.ctx-item.danger:hover{background:#fef2f2}
+.ctx-sep{height:1px;background:var(--border-soft);margin:4px 0}
+
+/* ═══════════════════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════════════════ */
+#toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  padding:10px 18px;border-radius:10px;font-size:13px;font-weight:500;
+  box-shadow:var(--shadow-lg);z-index:1000;display:none;
+  animation:toastIn .3s ease;
+}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.toast-ok{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
+.toast-err{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
+.toast-info{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+
+/* Overlay backdrop */
+#overlay{position:fixed;inset:0;z-index:150;display:none}
+#overlay.open{display:block}
+
+/* Responsive */
+@media(max-width:700px){
+  #sidebar{position:fixed;left:-100%;z-index:300;box-shadow:var(--shadow-lg)}
+  #sidebar.mobile-open{left:0;width:280px}
+  .msg-avatar{margin:0 10px}
+  .msg-body{padding-right:10px}
+  .welcome-cats{grid-template-columns:1fr}
+}
+
+/* Animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.msg-row{animation:fadeUp .25s ease}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════
+     AUTH OVERLAY
+════════════════════════════════════════════════════════════ -->
+<div id="auth-overlay">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">⚖️</div>
+      <h1>SahayakAI</h1>
+      <p>सरकारी सहायक · Government AI Assistant</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Create Account</button>
+    </div>
+    <div id="auth-error" class="auth-error" style="display:none"></div>
+    <form id="auth-form" onsubmit="submitAuth(event)">
+      <div id="reg-fields" style="display:none">
+        <div class="field-row">
+          <div class="field"><label>First Name</label><input id="f-fname" placeholder="Rajesh"/></div>
+          <div class="field"><label>Last Name</label><input id="f-lname" placeholder="Kumar"/></div>
+        </div>
+      </div>
+      <div class="field"><label>Email Address</label><input id="f-email" type="email" placeholder="you@example.com" required/></div>
+      <div class="field"><label>Password</label><input id="f-pass" type="password" placeholder="••••••••" required/></div>
+      <button class="btn-primary" id="auth-submit-btn" type="submit">Sign In</button>
+    </form>
+    <div class="india-badge">🇮🇳 Built for Indian Citizens · भारत सरकार</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     PROFILE COMPLETION POPUP
+════════════════════════════════════════════════════════════ -->
+<div id="profile-popup" class="hidden">
+  <div class="profile-popup-box">
+    <h2>Complete Your Profile 👋</h2>
+    <p>Help us personalise SahayakAI for your government needs. Takes 30 seconds.</p>
+    <div class="profile-steps">
+      <div class="pstep done" id="ps1"></div>
+      <div class="pstep" id="ps2"></div>
+      <div class="pstep" id="ps3"></div>
+    </div>
+    <div id="popup-step-1">
+      <div class="profile-avatar-row">
+        <div class="avatar-circle" id="popup-av" onclick="cycleAvatarEmoji()">👤</div>
+        <div>
+          <div style="font-size:14px;font-weight:600" id="popup-greeting">Hello!</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:3px">Choose your avatar or we'll use your initials</div>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>State / राज्य</label>
+          <select id="pp-state">
+            <option value="">Select State</option>
+            <option>Uttar Pradesh</option><option>Maharashtra</option><option>Delhi</option>
+            <option>Bihar</option><option>Rajasthan</option><option>Gujarat</option>
+            <option>Karnataka</option><option>Tamil Nadu</option><option>West Bengal</option>
+            <option>Madhya Pradesh</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field"><label>District / जिला</label><input id="pp-district" placeholder="e.g. Lucknow"/></div>
+      </div>
+      <div class="field">
+        <label>Department / विभाग (Optional)</label>
+        <select id="pp-dept">
+          <option value="">Select Department</option>
+          <option>Revenue / राजस्व</option><option>Police / पुलिस</option>
+          <option>Health / स्वास्थ्य</option><option>Education / शिक्षा</option>
+          <option>Agriculture / कृषि</option><option>PWD / लोक निर्माण</option>
+          <option>Common Citizen / आम नागरिक</option>
+        </select>
+      </div>
+      <button class="btn-primary" onclick="nextPopupStep()">Continue →</button>
+    </div>
+    <div id="popup-step-2" style="display:none">
+      <div class="field"><label>Preferred Language / पसंदीदा भाषा</label>
+        <select id="pp-lang"><option value="auto">Auto-detect</option><option value="en">English</option><option value="hi">हिंदी</option></select>
+      </div>
+      <div class="field"><label>Primary Use Case</label>
+        <select id="pp-usecase">
+          <option>RTI / Right to Information</option>
+          <option>Pension Scheme Queries</option>
+          <option>Land Records / भू-अभिलेख</option>
+          <option>Government Schemes</option>
+          <option>Legal / Court Queries</option>
+          <option>General Government Info</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn-primary" style="background:#6366f1" onclick="prevPopupStep()">← Back</button>
+        <button class="btn-primary" onclick="finishProfile()">Finish Setup ✓</button>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:14px">
+      <button class="skip-btn" onclick="skipProfile()">Skip for now</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     MAIN APP
+════════════════════════════════════════════════════════════ -->
+<div id="app" class="hidden">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sidebar-top">
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="brand-icon">⚖️</div>
+          <div>
+            <div class="brand-name">SahayakAI</div>
+            <div class="brand-sub">सरकारी सहायक</div>
+          </div>
+        </div>
+        <button class="icon-btn" onclick="toggleSidebar()" title="Close sidebar">☰</button>
+      </div>
+
+      <button class="new-chat-btn" onclick="newChat()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="1" x2="7" y2="13"/><line x1="1" y1="7" x2="13" y2="7"/></svg>
+        New Chat
+      </button>
+
+      <div class="sidebar-search">
+        <span style="color:var(--text-muted);font-size:13px">🔍</span>
+        <input id="chat-search" placeholder="Search chats…" oninput="filterChats()"/>
+      </div>
+
+      <button class="upload-trigger" onclick="openPanel('upload')">
+        📂 <span>Knowledge Vault</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--text-muted)" id="doc-count-badge">0 docs</span>
+      </button>
+    </div>
+
+    <div class="sidebar-chats" id="sidebar-chats">
+      <div class="sidebar-section-label" id="pinned-label" style="display:none">📌 Pinned</div>
+      <div id="pinned-list"></div>
+      <div class="sidebar-section-label">Recent</div>
+      <div id="recent-list">
+        <div style="padding:20px 12px;text-align:center;color:var(--text-muted);font-size:12.5px">
+          Start a conversation to see your history
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-bottom">
+      <button class="profile-btn" onclick="openPanel('profile')">
+        <div class="avatar" id="sidebar-avatar">?</div>
+        <div class="profile-info">
+          <div class="profile-name" id="sidebar-name">Guest User</div>
+          <div class="profile-role" id="sidebar-role">Set up your profile</div>
+        </div>
+        <span class="profile-chevron">⋯</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div id="main">
+    <!-- Topbar -->
+    <div class="topbar">
+      <button class="topbar-toggle" onclick="toggleSidebar()">☰</button>
+      <span class="topbar-title" id="topbar-title">SahayakAI</span>
+      <div class="topbar-lang">
+        <button class="lang-btn active" id="lb-auto" onclick="setLang('auto',this)">Auto</button>
+        <button class="lang-btn" id="lb-en" onclick="setLang('en',this)">EN</button>
+        <button class="lang-btn" id="lb-hi" onclick="setLang('hi',this)">हिं</button>
+      </div>
+      <div class="topbar-actions">
+        <button class="ta-btn" title="Export chat" onclick="exportChat()">⬇</button>
+        <!-- <button class="ta-btn" title="Share chat" onclick="shareChat()">↗</button> -->
+        <button class="ta-btn" title="Upload document" onclick="openPanel('upload')">📂</button>
+      </div>
+    </div>
+
+    <!-- Welcome -->
+    <div id="welcome">
+      <div class="welcome-icon">⚖️</div>
+      <h2>नमस्ते! <span>SahayakAI</span> में आपका स्वागत है</h2>
+      <p>Your AI-powered Government Assistant. Ask about RTI, schemes, land records, pensions, legal rights, or any government process — in Hindi or English.</p>
+      <div class="welcome-cats">
+        <div class="cat-card" onclick="setHint('RTI kaise file kare? Documents kya chahiye?')">
+          <div class="cat-card-icon">📋</div>
+          <div class="cat-card-title">RTI Filing</div>
+          <div class="cat-card-desc">How to file RTI, required documents, tracking</div>
+        </div>
+        <div class="cat-card" onclick="setHint('Pradhan Mantri Awas Yojana ke liye kaise apply karen?')">
+          <div class="cat-card-icon">🏠</div>
+          <div class="cat-card-title">Government Schemes</div>
+          <div class="cat-card-desc">PM Awas, Ujjwala, Jan Dhan, MNREGA and more</div>
+        </div>
+        <div class="cat-card" onclick="setHint('Bhumi record kaise dekhte hai online?')">
+          <div class="cat-card-icon">🗺️</div>
+          <div class="cat-card-title">Land Records / भू-लेख</div>
+          <div class="cat-card-desc">Check Khasra, Khatauni, mutations online</div>
+        </div>
+        <div class="cat-card" onclick="setHint('Old age pension ke liye eligibility kya hai?')">
+          <div class="cat-card-icon">💰</div>
+          <div class="cat-card-title">Pension & Benefits</div>
+          <div class="cat-card-desc">Old age, widow, disability pension eligibility</div>
+        </div>
+      </div>
+      <div class="hint-chips">
+        <div class="hint-chip" onclick="setHint('Aadhaar card update kaise kare?')">Aadhaar Update</div>
+        <div class="hint-chip" onclick="setHint('आधार कार्ड में पता कैसे बदलें?')">आधार पता बदलें</div>
+        <div class="hint-chip" onclick="setHint('PAN card ke liye apply karna hai')">PAN Card Apply</div>
+        <div class="hint-chip" onclick="setHint('Voter ID correction process kya hai?')">Voter ID</div>
+        <div class="hint-chip" onclick="setHint('Digilocker mein documents kaise save kare?')">DigiLocker</div>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div id="messages"></div>
+
+    <!-- Input Area -->
+    <div class="input-area">
+      <div class="input-box">
+        <textarea id="query" rows="1" placeholder="Government scheme, RTI, land record, pension — ask anything… / कुछ भी पूछें…" onkeydown="onKey(event)" oninput="autoResize(this)"></textarea>
+        <div class="input-tools">
+          <button class="it-btn" title="Upload document" onclick="openPanel('upload')">📎</button>
+          <button class="send-btn" id="send-btn" onclick="send()" disabled>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 8L15 8M15 8L8 1M15 8L8 15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="input-footer">
+        <div class="input-footer-left">
+          <select class="filter-sel" id="doc-filter" onchange="setFilter()">
+            <option value="">All Documents</option>
+          </select>
+          <span class="char-count" id="char-count"></span>
+        </div>
+        <div class="input-footer-right">
+          <button class="footer-btn" onclick="exportChat()">⬇ Export</button>
+          <button class="footer-btn" onclick="clearChat()">🗑 Clear</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UPLOAD PANEL -->
+  <div id="upload-panel">
+    <div class="panel-header">
+      <h3>📂 Knowledge Vault</h3>
+      <button class="panel-close" onclick="closePanel()">✕</button>
+    </div>
+    <div class="panel-body">
+      <div class="drop-zone" id="drop-zone" ondragover="onDrag(event,true)" ondragleave="onDrag(event,false)" ondrop="onDrop(event)">
+        <input type="file" id="file-input" accept=".pdf,.txt,.md,.docx,.csv" onchange="onFileSelect(event)"/>
+        <div class="drop-icon">📄</div>
+        <p><span>Click or drag</span> to upload<br/><small style="font-size:11px;color:var(--text-muted)">PDF · TXT · MD · DOCX · CSV · Max 20MB</small></p>
+      </div>
+      <div id="selected-file" style="font-size:12px;color:var(--cyan);margin-bottom:8px;display:none"></div>
+      <select class="lang-select" id="upload-lang">
+        <option value="auto">🌐 Auto-detect Language</option>
+        <option value="en">🇬🇧 English</option>
+        <option value="hi">🇮🇳 Hindi / हिंदी</option>
+      </select>
+      <div class="prog-wrap" id="prog-wrap"><div class="prog-fill" id="prog-fill"></div></div>
+      <button class="btn-primary" id="upload-btn" onclick="uploadFile()" disabled style="margin-bottom:16px">Upload & Index Document</button>
+      <div class="sidebar-section-label" style="padding:0 0 8px">Indexed Documents</div>
+      <div id="panel-doc-list"><div style="text-align:center;color:var(--text-muted);font-size:12.5px;padding:14px">No documents yet</div></div>
+    </div>
+  </div>
+
+  <!-- PROFILE PANEL -->
+  <div id="profile-panel">
+    <div class="panel-header">
+      <h3>👤 Profile & Dashboard</h3>
+      <button class="panel-close" onclick="closePanel()">✕</button>
+    </div>
+    <div class="prof-hero">
+      <div class="prof-av-row">
+        <div class="prof-av" id="prof-av-big">?</div>
+        <div>
+          <div class="prof-name" id="prof-name-display">Guest User</div>
+          <div class="prof-email" id="prof-email-display">-</div>
+          <div class="prof-tags" id="prof-tags" style="margin-top:6px"></div>
+        </div>
+      </div>
+      <div class="prof-stats">
+        <div class="pstat"><div class="pstat-val" id="ps-chats">0</div><div class="pstat-label">Chats</div></div>
+        <div class="pstat"><div class="pstat-val" id="ps-docs">0</div><div class="pstat-label">Documents</div></div>
+        <div class="pstat"><div class="pstat-val" id="ps-cached">0</div><div class="pstat-label">Cached</div></div>
+      </div>
+    </div>
+    <div class="prof-body">
+      <div class="prof-section">
+        <div class="prof-section-title">Personal Information</div>
+        <div class="field-row">
+          <div class="prof-field"><label>First Name</label><input id="pf-fname" placeholder="Rajesh"/></div>
+          <div class="prof-field"><label>Last Name</label><input id="pf-lname" placeholder="Kumar"/></div>
+        </div>
+        <div class="prof-field"><label>State</label>
+          <select id="pf-state">
+            <option value="">Select State</option>
+            <option>Uttar Pradesh</option><option>Maharashtra</option><option>Delhi</option>
+            <option>Bihar</option><option>Rajasthan</option><option>Gujarat</option>
+            <option>Karnataka</option><option>Tamil Nadu</option><option>West Bengal</option>
+            <option>Madhya Pradesh</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="prof-field"><label>District</label><input id="pf-district" placeholder="Lucknow"/></div>
+          <div class="prof-field"><label>Department</label>
+            <select id="pf-dept">
+              <option value="">Select</option>
+              <option>Revenue</option><option>Police</option><option>Health</option>
+              <option>Education</option><option>Agriculture</option><option>PWD</option>
+              <option>Common Citizen</option>
+            </select>
+          </div>
+        </div>
+        <div class="prof-field"><label>Primary Language</label>
+          <select id="pf-lang"><option value="auto">Auto-detect</option><option value="en">English</option><option value="hi">हिंदी</option></select>
+        </div>
+        <button class="save-prof-btn" onclick="saveProfile()">Save Profile</button>
+      </div>
+      <div class="prof-section">
+        <div class="prof-section-title">Account</div>
+        <div class="danger-zone">
+          <div style="font-size:12.5px;color:var(--text-soft);margin-bottom:10px">Signed in as <strong id="acc-email">-</strong></div>
+          <button class="logout-btn" onclick="logout()">Sign Out</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay -->
+  <div id="overlay" onclick="closePanel()"></div>
+</div>
+
+<!-- Context Menu -->
+<div id="ctx-menu">
+  <div class="ctx-item" onclick="pinChat()">📌 Pin Chat</div>
+  <div class="ctx-item" onclick="renameChat()">✏️ Rename</div>
+  <div class="ctx-item" onclick="exportChatItem()">⬇ Export</div>
+  <div class="ctx-item" onclick="shareChatItem()">↗ Share</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item danger" onclick="deleteChat()">🗑 Delete</div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+'use strict';
+// ════════════════════════════════════════════════════════════════
+//  CONFIG
+// ════════════════════════════════════════════════════════════════
+const API = window.location.origin + '/api';
+
+// ════════════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════════════
+let state = {
+  user:       null,       // {email, fname, lname, state, district, dept, lang, avatar}
+  chats:      [],         // [{id, title, messages[], pinned, createdAt}]
+  activeChatId: null,
+  docs:       [],
+  lang:       'auto',
+  filter:     '',
+  typing:     false,
+  ctxChatId:  null,
+};
+
+// ════════════════════════════════════════════════════════════════
+//  STORAGE
+// ════════════════════════════════════════════════════════════════
+const S = {
+  get:  k => { try { return JSON.parse(localStorage.getItem(k)) } catch { return null } },
+  set:  (k,v) => localStorage.setItem(k, JSON.stringify(v)),
+  del:  k => localStorage.removeItem(k),
+};
+
+function saveState() {
+  S.set('sahayak_chats', state.chats);
+  S.set('sahayak_user',  state.user);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  AUTH
+// ════════════════════════════════════════════════════════════════
+let authMode = 'login';
+
+function switchAuthTab(mode) {
+  authMode = mode;
+  document.getElementById('tab-login').classList.toggle('active', mode==='login');
+  document.getElementById('tab-register').classList.toggle('active', mode==='register');
+  document.getElementById('reg-fields').style.display = mode==='register' ? '' : 'none';
+  document.getElementById('auth-submit-btn').textContent = mode==='login' ? 'Sign In' : 'Create Account';
+  document.getElementById('auth-error').style.display = 'none';
+}
+
+async function submitAuth(e) {
+  e.preventDefault();
+  const email = document.getElementById('f-email').value.trim();
+  const pass  = document.getElementById('f-pass').value;
+  const errEl = document.getElementById('auth-error');
+  const btn   = document.getElementById('auth-submit-btn');
+
+  if (!email || !pass) { showAuthError('Please fill in all fields'); return; }
+  if (pass.length < 6) { showAuthError('Password must be at least 6 characters'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Please wait…';
+
+  // Demo auth — works without backend auth endpoint
+  await new Promise(r => setTimeout(r, 600)); // simulate network
+  try {
+    let user = S.get('sahayak_user');
+    if (authMode === 'register') {
+      const fname = document.getElementById('f-fname').value.trim() || email.split('@')[0];
+      const lname = document.getElementById('f-lname').value.trim() || '';
+      user = { email, fname, lname, state:'', district:'', dept:'', lang:'auto', avatar:'👤', isNew:true };
+    } else {
+      if (!user || user.email !== email) {
+        // Auto-create for demo
+        user = { email, fname: email.split('@')[0], lname:'', state:'', district:'', dept:'', lang:'auto', avatar:'👤', isNew:false };
+      }
+    }
+    state.user = user;
+    saveState();
+    document.getElementById('auth-overlay').classList.add('hidden');
+    initApp();
+    if (user.isNew || !user.state) showProfilePopup();
+  } catch(err) {
+    showAuthError('Something went wrong. Please try again.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = authMode==='login' ? 'Sign In' : 'Create Account';
+  }
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function logout() {
+  state.user = null;
+  saveState();
+  closePanel();
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('auth-overlay').classList.remove('hidden');
+}
+
+// ════════════════════════════════════════════════════════════════
+//  PROFILE POPUP
+// ════════════════════════════════════════════════════════════════
+const AVATARS = ['👤','👨','👩','👨‍💼','👩‍💼','🧑‍⚖️','👨‍⚕️','👩‍🏫','🧑‍🌾'];
+let avIdx = 0;
+function cycleAvatarEmoji() { avIdx=(avIdx+1)%AVATARS.length; document.getElementById('popup-av').textContent=AVATARS[avIdx]; }
+
+let popupStep = 1;
+function showProfilePopup() {
+  const u = state.user;
+  document.getElementById('popup-greeting').textContent = `Hello, ${u.fname}!`;
+  document.getElementById('profile-popup').classList.remove('hidden');
+  popupStep = 1;
+  document.getElementById('popup-step-1').style.display = '';
+  document.getElementById('popup-step-2').style.display = 'none';
+  document.getElementById('ps1').className='pstep done';
+  document.getElementById('ps2').className='pstep';
+  document.getElementById('ps3').className='pstep';
+}
+
+function nextPopupStep() {
+  const st = document.getElementById('pp-state').value;
+  state.user.state    = st || '';
+  state.user.district = document.getElementById('pp-district').value.trim();
+  state.user.dept     = document.getElementById('pp-dept').value;
+  document.getElementById('popup-step-1').style.display = 'none';
+  document.getElementById('popup-step-2').style.display = '';
+  document.getElementById('ps2').className='pstep done';
+  popupStep = 2;
+}
+
+function prevPopupStep() {
+  document.getElementById('popup-step-1').style.display = '';
+  document.getElementById('popup-step-2').style.display = 'none';
+  popupStep = 1;
+}
+
+function finishProfile() {
+  state.user.lang    = document.getElementById('pp-lang').value;
+  state.user.usecase = document.getElementById('pp-usecase').value;
+  state.user.avatar  = AVATARS[avIdx];
+  state.user.isNew   = false;
+  document.getElementById('ps3').className='pstep done';
+  saveState();
+  document.getElementById('profile-popup').classList.add('hidden');
+  refreshSidebarProfile();
+  toast('Profile saved! Welcome to SahayakAI 🎉','ok');
+  // Set language preference
+  if (state.user.lang !== 'auto') setLang(state.user.lang, document.getElementById('lb-'+state.user.lang));
+}
+
+function skipProfile() {
+  state.user.isNew = false;
+  saveState();
+  document.getElementById('profile-popup').classList.add('hidden');
+}
+
+// ════════════════════════════════════════════════════════════════
+//  APP INIT
+// ════════════════════════════════════════════════════════════════
+function initApp() {
+  document.getElementById('app').classList.remove('hidden');
+  state.chats = S.get('sahayak_chats') || [];
+  refreshSidebarProfile();
+  renderSidebarChats();
+  loadDocs();
+  loadCacheStats();
+
+  // Auto-restore last active chat
+  if (state.chats.length > 0) {
+    const last = state.chats[0];
+    state.activeChatId = last.id;
+    renderMessages(last.messages);
+    document.getElementById('topbar-title').textContent = last.title;
+    markActiveChatItem(last.id);
+  }
+}
+
+function refreshSidebarProfile() {
+  const u = state.user;
+  if (!u) return;
+  const initials = (u.fname?.[0]||'') + (u.lname?.[0]||'');
+  const disp = initials || u.avatar || '?';
+  document.getElementById('sidebar-avatar').textContent = u.avatar || disp;
+  document.getElementById('sidebar-name').textContent = `${u.fname} ${u.lname}`.trim() || u.email;
+  document.getElementById('sidebar-role').textContent = u.dept || u.state || 'Citizen';
+  // Profile panel
+  document.getElementById('prof-av-big').textContent = u.avatar || disp;
+  document.getElementById('prof-name-display').textContent = `${u.fname} ${u.lname}`.trim() || u.email;
+  document.getElementById('prof-email-display').textContent = u.email;
+  document.getElementById('acc-email').textContent = u.email;
+  // Tags
+  const tags = document.getElementById('prof-tags');
+  tags.innerHTML = '';
+  if (u.state) tags.innerHTML += `<span class="prof-tag pt-state">${u.state}</span>`;
+  if (u.district) tags.innerHTML += `<span class="prof-tag pt-district">${u.district}</span>`;
+  if (u.dept) tags.innerHTML += `<span class="prof-tag pt-dept">${u.dept}</span>`;
+  // Fill profile fields
+  document.getElementById('pf-fname').value  = u.fname||'';
+  document.getElementById('pf-lname').value  = u.lname||'';
+  document.getElementById('pf-state').value  = u.state||'';
+  document.getElementById('pf-district').value = u.district||'';
+  document.getElementById('pf-dept').value   = u.dept||'';
+  document.getElementById('pf-lang').value   = u.lang||'auto';
+}
+
+// ════════════════════════════════════════════════════════════════
+//  CHAT MANAGEMENT
+// ════════════════════════════════════════════════════════════════
+function newChat() {
+  state.activeChatId = null;
+  state.chats.unshift({ id: uid(), title: 'New Chat', messages:[], pinned:false, createdAt: Date.now() });
+  state.activeChatId = state.chats[0].id;
+  renderSidebarChats();
+  markActiveChatItem(state.activeChatId);
+  clearMessages();
+  document.getElementById('topbar-title').textContent = 'New Chat';
+  saveState();
+  document.getElementById('query').focus();
+}
+
+function clearMessages() {
+  document.getElementById('messages').innerHTML = '';
+  document.getElementById('messages').classList.remove('visible');
+  document.getElementById('welcome').style.display = '';
+}
+
+function activeChat() {
+  if (!state.activeChatId) {
+    // Create first chat
+    state.chats.unshift({ id: uid(), title: 'New Chat', messages:[], pinned:false, createdAt: Date.now() });
+    state.activeChatId = state.chats[0].id;
+    renderSidebarChats();
+  }
+  return state.chats.find(c => c.id === state.activeChatId) || state.chats[0];
+}
+
+function renderSidebarChats(filter='') {
+  const pinned = state.chats.filter(c => c.pinned && (!filter || c.title.toLowerCase().includes(filter)));
+  const recent = state.chats.filter(c => !c.pinned && (!filter || c.title.toLowerCase().includes(filter)));
+  const pLabel = document.getElementById('pinned-label');
+  pLabel.style.display = pinned.length ? '' : 'none';
+  document.getElementById('pinned-list').innerHTML = pinned.map(c => chatItemHTML(c)).join('');
+  document.getElementById('recent-list').innerHTML = recent.length
+    ? recent.map(c => chatItemHTML(c)).join('')
+    : '<div style="padding:16px 12px;text-align:center;color:var(--text-muted);font-size:12.5px">Start a conversation to see your history</div>';
+  // Update stats
+  document.getElementById('ps-chats').textContent = state.chats.length;
+  markActiveChatItem(state.activeChatId);
+}
+
+function chatItemHTML(c) {
+  return `<div class="chat-item" id="ci-${c.id}" onclick="loadChat('${c.id}')">
+    <span class="chat-item-icon">${c.pinned?'📌':'💬'}</span>
+    <span class="chat-item-text" title="${esc(c.title)}">${esc(c.title)}</span>
+    <button class="chat-item-menu" onclick="openCtxMenu(event,'${c.id}')">⋯</button>
+  </div>`;
+}
+
+function loadChat(id) {
+  state.activeChatId = id;
+  const chat = state.chats.find(c => c.id === id);
+  if (!chat) return;
+  renderMessages(chat.messages);
+  document.getElementById('topbar-title').textContent = chat.title;
+  markActiveChatItem(id);
+}
+
+function markActiveChatItem(id) {
+  document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('ci-'+id);
+  if (el) el.classList.add('active');
+}
+
+function filterChats() {
+  renderSidebarChats(document.getElementById('chat-search').value.toLowerCase());
+}
+
+function autotitleChat(text) {
+  const chat = activeChat();
+  if (chat.title === 'New Chat' || !chat.title) {
+    chat.title = text.length > 36 ? text.slice(0,33)+'…' : text;
+    renderSidebarChats();
+    document.getElementById('topbar-title').textContent = chat.title;
+    saveState();
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  CONTEXT MENU
+// ════════════════════════════════════════════════════════════════
+function openCtxMenu(e, id) {
+  e.stopPropagation();
+  state.ctxChatId = id;
+  const m = document.getElementById('ctx-menu');
+  m.style.left = Math.min(e.clientX, window.innerWidth-180)+'px';
+  m.style.top  = Math.min(e.clientY, window.innerHeight-200)+'px';
+  m.classList.add('open');
+  document.addEventListener('click', closeCtxMenu, {once:true});
+}
+function closeCtxMenu() { document.getElementById('ctx-menu').classList.remove('open'); }
+
+function pinChat() {
+  const c = state.chats.find(x => x.id === state.ctxChatId);
+  if (c) { c.pinned = !c.pinned; saveState(); renderSidebarChats(); }
+  closeCtxMenu();
+}
+function renameChat() {
+  const c = state.chats.find(x => x.id === state.ctxChatId);
+  if (!c) return;
+  const t = prompt('Rename chat:', c.title);
+  if (t?.trim()) { c.title = t.trim(); saveState(); renderSidebarChats(); }
+  closeCtxMenu();
+}
+function deleteChat() {
+  state.chats = state.chats.filter(x => x.id !== state.ctxChatId);
+  if (state.activeChatId === state.ctxChatId) { clearMessages(); state.activeChatId = null; }
+  saveState(); renderSidebarChats();
+  closeCtxMenu();
+}
+function exportChatItem() {
+  const c = state.chats.find(x => x.id === state.ctxChatId);
+  if (c) doExport(c);
+  closeCtxMenu();
+}
+function shareChatItem() { toast('Share link copied to clipboard! (Demo)','ok'); closeCtxMenu(); }
+
+// ════════════════════════════════════════════════════════════════
+//  CHAT SEND
+// ════════════════════════════════════════════════════════════════
+async function send() {
+  const input = document.getElementById('query');
+  const text  = input.value.trim();
+  if (!text || state.typing) return;
+  input.value = ''; autoResize(input);
+  document.getElementById('send-btn').disabled = true;
+
+  // Hide welcome, show messages
+  document.getElementById('welcome').style.display = 'none';
+  const msgs = document.getElementById('messages');
+  msgs.classList.add('visible');
+
+  // Get/create active chat
+  const chat = activeChat();
+  autotitleChat(text);
+
+  // Add user message
+  const userMsg = { role:'user', text, lang: isHi(text)?'hi':'en', ts: Date.now() };
+  chat.messages.push(userMsg);
+  appendMsgRow(userMsg);
+
+  // Typing indicator
+  const tid = 'typing-'+Date.now();
+  appendTyping(tid);
+  state.typing = true;
+  saveState();
+
+  try {
+    // Build history for API (last 10)
+    const history = chat.messages.slice(-11,-1).map(m => ({
+      role: m.role==='user'?'user':'model', content: m.text
+    }));
+
+    const res = await fetch(`${API}/chat`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ query:text, history, language:state.lang, source_filter:state.filter||null })
+    });
+    const data = await res.json();
+    removeEl(tid);
+    if (!res.ok) throw new Error(data.detail||'Chat error');
+
+    const botMsg = {
+      role:'assistant', text:data.answer, lang:data.language||'en',
+      sources:data.sources||[], mode:data.mode||'', fromCache:data.from_cache||false,
+      cacheHits:data.cache_hits||0, ts:Date.now(),
+    };
+    chat.messages.push(botMsg);
+    appendMsgRow(botMsg, text);
+    saveState();
+  } catch(err) {
+    removeEl(tid);
+    const errMsg = { role:'assistant', text:'⚠️ '+err.message, lang:'en', ts:Date.now() };
+    chat.messages.push(errMsg);
+    appendMsgRow(errMsg);
+    saveState();
+  } finally {
+    state.typing = false;
+    document.getElementById('send-btn').disabled = false;
+    input.focus();
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+}
+
+function appendMsgRow(msg, userQuery='') {
+  const isUser = msg.role === 'user';
+  const isHiMsg = msg.lang === 'hi';
+  const msgs = document.getElementById('messages');
+
+  const row = document.createElement('div');
+  row.className = `msg-row ${isUser?'user':'bot'}`;
+  row.id = 'msg-'+msg.ts;
+
+  const avDiv = `<div class="msg-avatar ${isUser?'user-av':'bot-av'}">${isUser ? (state.user?.avatar||state.user?.fname?.[0]||'U') : '⚖️'}</div>`;
+  const sender = isUser ? (state.user?.fname||'You') : 'SahayakAI';
+
+  let badgesHTML = '';
+  let actionsHTML = '';
+
+  if (!isUser) {
+    // Badges
+    let badges = '';
+    if (msg.fromCache) badges += `<span class="mbadge mb-cache">⚡ Instant ×${msg.cacheHits||1}</span>`;
+    else if (msg.mode==='rag') badges += `<span class="mbadge mb-rag">📄 From Documents</span>`;
+    else if (msg.mode==='general_fallback') badges += `<span class="mbadge mb-fallback">🌐 General Fallback</span>`;
+    else badges += `<span class="mbadge mb-general">🌐 General Knowledge</span>`;
+    (msg.sources||[]).forEach(s => badges += `<span class="source-chip">📄 ${s.split('/').pop()}</span>`);
+    if (badges) badgesHTML = `<div class="msg-badges">${badges}</div>`;
+
+    // Actions
+    actionsHTML = `<div class="msg-actions">
+      <button class="ma-btn" onclick="copyText(this,'${encodeURIComponent(msg.text)}')">📋 Copy</button>
+      <button class="ma-btn" onclick="loadFollowups(this,'${encodeURIComponent(userQuery)}','${encodeURIComponent(msg.text)}','${msg.lang}')">✨ Follow-ups</button>
+      <button class="ma-btn" onclick="translateMsg(this,'${encodeURIComponent(msg.text)}','${msg.lang}')">🌐 Translate</button>
+    </div>`;
+  }
+
+  row.innerHTML = `
+    ${avDiv}
+    <div class="msg-body">
+      <div class="msg-sender">${sender}</div>
+      <div class="msg-text${isHiMsg?' hi':''}" id="mt-${msg.ts}">${isUser ? esc(msg.text) : esc(msg.text)}</div>
+      ${badgesHTML}${actionsHTML}
+    </div>`;
+
+  msgs.appendChild(row);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function appendTyping(id) {
+  const msgs = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row bot'; row.id = id;
+  row.innerHTML = `<div class="msg-avatar bot-av">⚖️</div><div class="msg-body"><div class="msg-sender">SahayakAI</div><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
+  msgs.appendChild(row);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function renderMessages(messages) {
+  const msgs = document.getElementById('messages');
+  msgs.innerHTML = '';
+  if (!messages?.length) { clearMessages(); return; }
+  document.getElementById('welcome').style.display = 'none';
+  msgs.classList.add('visible');
+  messages.forEach((m,i) => {
+    const prevUserMsg = i > 0 && messages[i-1]?.role==='user' ? messages[i-1].text : '';
+    appendMsgRow(m, prevUserMsg);
+  });
+  setTimeout(()=>msgs.scrollTop=msgs.scrollHeight, 50);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  MESSAGE ACTIONS
+// ════════════════════════════════════════════════════════════════
+function copyText(btn, encoded) {
+  navigator.clipboard.writeText(decodeURIComponent(encoded));
+  btn.textContent = '✓ Copied'; setTimeout(()=>btn.textContent='📋 Copy',2000);
+}
+
+async function loadFollowups(btn, encQ, encA, lang) {
+  const parent = btn.closest('.msg-body');
+  const existing = parent.querySelector('.followups');
+  if (existing) { existing.remove(); return; }
+  btn.textContent = '⏳ Loading…';
+  try {
+    const res = await fetch(`${API}/tools/followups`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ query:decodeURIComponent(encQ), answer:decodeURIComponent(encA), language:lang })
+    });
+    const data = await res.json();
+    const div = document.createElement('div'); div.className='followups';
+    (data.suggestions||[]).forEach(s => {
+      const b = document.createElement('button'); b.className='fu-btn'; b.textContent=s;
+      b.onclick = () => { document.getElementById('query').value=s; send(); };
+      div.appendChild(b);
+    });
+    if (div.children.length) parent.appendChild(div);
+  } catch(e) { toast('Could not load follow-ups','err'); }
+  finally { btn.textContent='✨ Follow-ups'; }
+}
+
+async function translateMsg(btn, encText, lang) {
+  const target = lang==='hi' ? 'en' : 'hi';
+  btn.textContent = '⏳ Translating…';
+  try {
+    const res = await fetch(`${API}/tools/translate`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ text:decodeURIComponent(encText), target_lang:target })
+    });
+    const data = await res.json();
+    const parent = btn.closest('.msg-body');
+    const existing = parent.querySelector('.translation-out');
+    if (existing) existing.remove();
+    const div = document.createElement('div');
+    div.className = 'translation-out followups';
+    div.innerHTML = `<div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">🌐 Translation (${target==='hi'?'Hindi':'English'})</div>
+      <div style="font-size:14px;line-height:1.7;color:var(--text);${target==='hi'?'font-family:var(--font-hi)':''}">${esc(data.translated)}</div>`;
+    parent.appendChild(div);
+  } catch(e) { toast('Translation failed','err'); }
+  finally { btn.textContent='🌐 Translate'; }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  DOCUMENTS
+// ════════════════════════════════════════════════════════════════
+let selFile = null;
+
+function onFileSelect(e) {
+  selFile = e.target.files[0];
+  if (selFile) {
+    document.getElementById('selected-file').style.display='block';
+    document.getElementById('selected-file').textContent = '📎 '+selFile.name;
+    document.getElementById('upload-btn').disabled = false;
+  }
+}
+function onDrag(e, on) { e.preventDefault(); document.getElementById('drop-zone').classList.toggle('drag',on); }
+function onDrop(e) { e.preventDefault(); onDrag(e,false); const f=e.dataTransfer.files[0]; if(f){selFile=f;document.getElementById('file-input').files=e.dataTransfer.files;onFileSelect({target:{files:[f]}});} }
+
+async function uploadFile() {
+  if (!selFile) return;
+  const btn = document.getElementById('upload-btn');
+  const pw  = document.getElementById('prog-wrap');
+  const pf  = document.getElementById('prog-fill');
+  btn.disabled=true; pw.style.display='block'; pf.style.width='30%';
+  toast('Uploading…','info');
+  const fd = new FormData();
+  fd.append('file', selFile);
+  fd.append('language', document.getElementById('upload-lang').value);
+  fd.append('overwrite','true');
+  try {
+    pf.style.width='60%';
+    const res  = await fetch(`${API}/documents/upload`,{method:'POST',body:fd});
+    const data = await res.json();
+    pf.style.width='100%';
+    if (!res.ok) throw new Error(data.detail||'Upload failed');
+    toast(`✅ ${data.chunks_created} chunks indexed!`,'ok');
+    document.getElementById('selected-file').style.display='none';
+    selFile=null; document.getElementById('file-input').value='';
+    btn.disabled=true;
+    loadDocs();
+  } catch(e) { toast('❌ '+e.message,'err'); }
+  finally { setTimeout(()=>{pw.style.display='none';pf.style.width='0'},800); }
+}
+
+async function loadDocs() {
+  try {
+    const res  = await fetch(`${API}/documents`);
+    const data = await res.json();
+    state.docs = data.documents||[];
+    renderDocList();
+    // Update filter select
+    const fsel = document.getElementById('doc-filter');
+    const prev = fsel.value;
+    fsel.innerHTML = '<option value="">All Documents</option>';
+    state.docs.forEach(d => { const o=document.createElement('option');o.value=d.source;o.textContent=d.source;fsel.appendChild(o); });
+    fsel.value = prev;
+    // Badge
+    document.getElementById('doc-count-badge').textContent = state.docs.length+' doc'+(state.docs.length!==1?'s':'');
+    // Profile panel
+    document.getElementById('ps-docs').textContent = state.docs.length;
+  } catch(e) {}
+}
+
+function renderDocList() {
+  const list = document.getElementById('panel-doc-list');
+  if (!state.docs.length) { list.innerHTML='<div style="text-align:center;color:var(--text-muted);font-size:12.5px;padding:14px">No documents yet</div>'; return; }
+  const colors = {'.pdf':'#fef2f2,.pdf,#dc2626','.docx':'#eff6ff,📝,#1d4ed8','.txt':'#f0fdf4,📄,#166534','.md':'#fdf4ff,#,#6b21a8','.csv':'#ecfdf5,📊,#065f46'};
+  list.innerHTML = state.docs.map(d => {
+    const ext = d.source.split('.').pop();
+    const lc  = d.language==='hi'?'lang-tag lt-hi':'lang-tag lt-en';
+    const ll  = d.language==='hi'?'हि':'EN';
+    return `<div class="panel-doc">
+      <div class="panel-doc-icon" style="background:var(--cyan-pale)">📄</div>
+      <div class="panel-doc-info">
+        <div class="panel-doc-name" title="${esc(d.source)}">${esc(d.source)}</div>
+        <div class="panel-doc-meta">${d.chunks} chunks · <span class="${lc}">${ll}</span></div>
+      </div>
+      <button class="doc-del" onclick="delDoc('${d.source.replace(/'/g,"\\'")}')">✕</button>
+    </div>`;
+  }).join('');
+}
+
+async function delDoc(src) {
+  if (!confirm(`Delete "${src}"?`)) return;
+  try {
+    await fetch(`${API}/documents/${encodeURIComponent(src)}`,{method:'DELETE'});
+    toast('Deleted','ok'); loadDocs();
+  } catch(e) { toast('Delete failed','err'); }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  CACHE STATS
+// ════════════════════════════════════════════════════════════════
+async function loadCacheStats() {
+  try {
+    const res  = await fetch(`${API}/tools/faq-stats`);
+    const data = await res.json();
+    document.getElementById('ps-cached').textContent = data.total_cached||0;
+  } catch(e) {}
+}
+
+// ════════════════════════════════════════════════════════════════
+//  PROFILE SAVE
+// ════════════════════════════════════════════════════════════════
+function saveProfile() {
+  state.user.fname    = document.getElementById('pf-fname').value.trim();
+  state.user.lname    = document.getElementById('pf-lname').value.trim();
+  state.user.state    = document.getElementById('pf-state').value;
+  state.user.district = document.getElementById('pf-district').value.trim();
+  state.user.dept     = document.getElementById('pf-dept').value;
+  state.user.lang     = document.getElementById('pf-lang').value;
+  saveState(); refreshSidebarProfile();
+  toast('Profile saved ✓','ok');
+}
+
+// ════════════════════════════════════════════════════════════════
+//  PANELS
+// ════════════════════════════════════════════════════════════════
+function openPanel(name) {
+  document.getElementById('upload-panel').classList.remove('open');
+  document.getElementById('profile-panel').classList.remove('open');
+  document.getElementById('overlay').classList.add('open');
+  if (name==='upload') { loadDocs(); document.getElementById('upload-panel').classList.add('open'); }
+  if (name==='profile') { refreshSidebarProfile(); loadCacheStats(); document.getElementById('profile-panel').classList.add('open'); }
+}
+function closePanel() {
+  document.getElementById('upload-panel').classList.remove('open');
+  document.getElementById('profile-panel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+// ════════════════════════════════════════════════════════════════
+//  SIDEBAR TOGGLE
+// ════════════════════════════════════════════════════════════════
+let sidebarCollapsed = false;
+function toggleSidebar() {
+  sidebarCollapsed = !sidebarCollapsed;
+  const sb = document.getElementById('sidebar');
+  if (window.innerWidth <= 700) {
+    sb.classList.toggle('mobile-open');
+  } else {
+    sb.classList.toggle('collapsed', sidebarCollapsed);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  LANG / FILTER
+// ════════════════════════════════════════════════════════════════
+function setLang(l, btn) {
+  state.lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function setFilter() { state.filter = document.getElementById('doc-filter').value; }
+
+// ════════════════════════════════════════════════════════════════
+//  EXPORT / SHARE / CLEAR
+// ════════════════════════════════════════════════════════════════
+function exportChat() {
+  const chat = activeChat();
+  if (!chat?.messages?.length) { toast('Nothing to export','info'); return; }
+  doExport(chat);
+}
+function doExport(chat) {
+  let md = `# ${chat.title}\n_Exported from SahayakAI — सरकारी सहायक_\n\n`;
+  chat.messages.forEach(m => { md += `**${m.role==='user'?'You':'SahayakAI'}:** ${m.text}\n\n`; });
+  const blob = new Blob([md],{type:'text/markdown'});
+  const a = document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`SahayakAI-${chat.title.replace(/[^a-z0-9]/gi,'-').slice(0,30)}.md`;
+  a.click();
+  toast('Chat exported!','ok');
+}
+function shareChat() { toast('Share link copied! (Demo)','ok'); }
+function clearChat() {
+  const chat = activeChat();
+  chat.messages = [];
+  saveState();
+  clearMessages();
+  toast('Chat cleared','info');
+}
+
+// ════════════════════════════════════════════════════════════════
+//  INPUT HELPERS
+// ════════════════════════════════════════════════════════════════
+function setHint(text) { document.getElementById('query').value=text; document.getElementById('query').focus(); updateSendBtn(); }
+function onKey(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();} }
+function autoResize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,140)+'px'; updateSendBtn(); }
+function updateSendBtn() {
+  const v = document.getElementById('query').value;
+  document.getElementById('send-btn').disabled = !v.trim() || state.typing;
+  const cc = document.getElementById('char-count');
+  cc.textContent = v.length > 0 ? v.length+' chars' : '';
+}
+document.getElementById('query').addEventListener('input', updateSendBtn);
+
+// ════════════════════════════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════════════════════════════
+function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function esc(t) { return (t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function isHi(t) { return /[\u0900-\u097F]/.test(t); }
+function removeEl(id) { document.getElementById(id)?.remove(); }
+function toast(msg, type='info') {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast-'+type; t.style.display='block';
+  clearTimeout(t._t); t._t=setTimeout(()=>t.style.display='none',3500);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════════════════════
+(function boot() {
+  const saved = S.get('sahayak_user');
+  if (saved && saved.email) {
+    state.user = saved;
+    document.getElementById('auth-overlay').classList.add('hidden');
+    initApp();
+  }
+  // else auth overlay is already shown
+})();
+</script>
+</body>
+</html>

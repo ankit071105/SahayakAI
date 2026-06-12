@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: neuravault
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      # ── Groq Keys (set in Render dashboard as Secret) ──────────────────
+      - key: GROQ_API_KEY_1
+        sync: false
+      - key: GROQ_API_KEY_2
+        sync: false
+      - key: GROQ_API_KEY_3
+        sync: false
+      - key: GROQ_API_KEY_4
+        sync: false
+      - key: GROQ_API_KEY_5
+        sync: false
+      # ── Cohere Key ──────────────────────────────────────────────────────
+      - key: COHERE_API_KEY
+        sync: false
+      # ── App Settings ────────────────────────────────────────────────────
+      - key: CHROMA_PERSIST_DIR
+        value: /data/chroma_db
+      - key: CHUNK_SIZE
+        value: "500"
+      - key: CHUNK_OVERLAP
+        value: "100"
+      - key: TOP_K_RESULTS
+        value: "5"
+      - key: MAX_FILE_SIZE_MB
+        value: "20"
+      - key: RETRY_ATTEMPTS
+        value: "3"
+      - key: RETRY_DELAY_SECONDS
+        value: "1"
+    disk:
+      name: chroma-storage
+      mountPath: /data
+      sizeGB: 1
+    healthCheckPath: /api/health
+    autoDeploy: true
