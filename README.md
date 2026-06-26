@@ -1,4 +1,4 @@
-# 🧠 NeuraVault — Multilingual AI Knowledge Vault
+#  SahayakAI — Multilingual AI Knowledge Vault
 
 **Your Neural Knowledge Vault** · Hindi + English · RAG Chatbot with FAQ Cache & Smart Tools
 
