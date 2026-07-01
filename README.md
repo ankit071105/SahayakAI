@@ -98,13 +98,4 @@ Open http://localhost:8000
 
 ---
 
-## 🏆 SIH Demo Script
 
-1. Ask a question → RAG answer with sources
-2. Ask it again, reworded → ⚡ instant cache hit (zero tokens)
-3. Ask in Hindi → full Hindi response
-4. Try a harmful query → blocked by intelligence layer
-5. Open Smart Tools → generate a quiz live
-6. Show Analytics → "we've already saved X tokens"
-
-See `WHATS_NEW.md` for the full feature list.
